@@ -1,0 +1,3 @@
+import {spawn} from 'node:child_process';import assert from 'node:assert/strict';import {writeFileSync} from 'node:fs';
+const child=spawn(process.execPath,['dist/server.mjs'],{env:{...process.env,PORT:'18080'},stdio:'inherit'});
+try {let response;for(let i=0;i<50;i++){try{response=await fetch('http://127.0.0.1:18080');break;}catch{await new Promise(r=>setTimeout(r,100));}}assert.ok(response?.ok);assert.deepEqual(await response.json(),{sum:5});writeFileSync('evidence/l3/results.json',JSON.stringify({schemaVersion:'1',results:[{name:'built-artifact-http-system',status:'passed'}]}));}finally{child.kill();}

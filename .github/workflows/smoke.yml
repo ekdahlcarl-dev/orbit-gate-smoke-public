@@ -1,0 +1,42 @@
+name: ORBIT public smoke CI
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: L1 syntax
+        run: node --check src/server.mjs
+      - name: L2 component tests
+        run: node test/component.mjs
+      - name: Prepare immutable application
+        run: |
+          mkdir -p dist evidence/l1 evidence/l2 evidence/l3
+          cp src/server.mjs dist/server.mjs
+          echo "$GITHUB_SHA" > dist/commit.txt
+          printf '%s' '{"schemaVersion":"1","results":[{"name":"syntax","status":"passed"}]}' > evidence/l1/results.json
+          printf '%s' '{"schemaVersion":"1","results":[{"name":"component-addition","status":"passed"}]}' > evidence/l2/results.json
+      - name: L3 HTTP system test against built application
+        run: node test/system.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: orbit-public-smoke-application
+          path: dist/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: orbit-evidence-l1-github-actions
+          path: evidence/l1/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: orbit-evidence-l2-automated-tests
+          path: evidence/l2/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: orbit-evidence-l3-http-system
+          path: evidence/l3/

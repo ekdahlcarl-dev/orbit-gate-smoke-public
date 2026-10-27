@@ -1,1 +1,1 @@
-ORB-16 exact-head required-check verification
+ORB-16 new head must not inherit prior passing checks
